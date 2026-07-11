@@ -14,18 +14,8 @@ import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 import av  # NEW: Handles cloud video frame decoding[cite: 3]
-from streamlit_webrtc import webrtc_streamer, WebRtcMode, RTCConfiguration # NEW: Cloud camera stream engine[cite: 3]
-# Find your existing webrtc_streamer call and add the rtc_configuration block:
-webrtc_streamer(
-    key="omnivision-pro-stream",  # Leave your original key here
-    rtc_configuration={
-        "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
-    },
-    # ─── KEEP ALL YOUR OTHER EXISTING ARGUMENTS BELOW THIS LINE ───
-    # e.g., video_frame_callback=video_frame_callback,
-    # e.g., async_processing=True,
-    # etc.
-)
+from streamlit_webrtc import webrtc_streamer, WebRtcMode
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 # SSL bypass for verified Google Storage downloads
@@ -615,19 +605,24 @@ class OmniVisionCloudProcessor:
 # ─────────────────────────────────────────────────────────────────────────────
 with col_vid:
     if run:
-        # 🎯 Dynamic key forces an instant camera engine recycle upon switching modules![cite: 3]
-        webrtc_streamer(
-            key=f"omnivision-cloud-pipeline-{mode}",
-            mode=WebRtcMode.SENDRECV,
-            async_processing=True,
-            rtc_configuration=RTCConfiguration({"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]}),
-            # Enforces explicit hardware constraints so the camera screen stays ultra-compact[cite: 3]
-            media_stream_constraints={
-                "video": {"width": {"ideal": 640}, "height": {"ideal": 480}},
-                "audio": False
-            },
-            video_processor_factory=lambda: OmniVisionCloudProcessor(mode),
-        )
+        # 1. Mount the stream with a permanently STABLE key and clean configuration dictionary
+        ctx = webrtc_streamer(
+           key="omnivision-cloud-core-pipeline",  # Fixed string stops layout jumps & connection resets
+             mode=WebRtcMode.SENDRECV,
+              async_processing=True,
+             rtc_configuration={
+        "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
+            },  # Clean dict structure bypasses wrapper bugs
+    media_stream_constraints={
+             "video": {"width": {"ideal": 640}, "height": {"ideal": 480}},
+          "audio": False
+             },
+    video_processor_factory=lambda: OmniVisionCloudProcessor(mode),
+)
+
+# 2. THE SECRET SAUCE: Hot-swap the processing mode on the fly without breaking the stream!
+    if ctx.video_processor:
+          ctx.video_processor.mode = mode
     else:
         viewport.markdown("""
         <div style="background:#0D1220;border:1px dashed #1E3A52;border-radius:12px;padding:60px 40px;text-align:center;margin-top:20px;">
