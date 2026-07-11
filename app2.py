@@ -605,25 +605,32 @@ class OmniVisionCloudProcessor:
 # CONTROL INTERFACE & COMPACT VIEWPORT MAPPING[cite: 3]
 # ─────────────────────────────────────────────────────────────────────────────
 with col_vid:
-    if run:
-        # 1. Make sure "ctx = " is explicitly written right here:
-            ctx = webrtc_streamer(
-    key="omnivision-cloud-core-pipeline", 
-    mode=WebRtcMode.SENDRECV,
-    async_processing=True,
-    rtc_configuration={
-        "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
-    },
-    media_stream_constraints={
-        "video": {"width": {"ideal": 640}, "height": {"ideal": 480}},
-        "audio": False
-    },
-    video_processor_factory=lambda: OmniVisionCloudProcessor(mode),
-)
+    # 1. Create the checkbox directly inside the video column
+    run = st.checkbox("Activate Cloud Processing Loop", value=False)
 
-# 2. Now this line down on line 624 has access to the variable and works perfectly:
+    if not run:
+        # This message shows ONLY when unchecked. The moment it's ticked, it vanishes completely!
+        st.error("🔒 Camera Pipeline Offline\n\nEnable the checkbox above to activate cloud processing loop.")
+    
+    else:
+        # 2. Ticked! Render ONLY the streaming canvas, device selectors, and start tools
+        ctx = webrtc_streamer(
+            key="omnivision-cloud-core-pipeline", 
+            mode=WebRtcMode.SENDRECV,
+            async_processing=True,
+            rtc_configuration={
+                "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
+            },
+            media_stream_constraints={
+                "video": {"width": {"ideal": 640}, "height": {"ideal": 480}},
+                "audio": False
+            },
+            video_processor_factory=lambda: OmniVisionCloudProcessor(mode),
+        )
+
+        # 3. Keep the module hot-swap engine inside the active block so it switches tasks seamlessly
     if ctx and ctx.video_processor:
-        ctx.video_processor.mode = mode
+            ctx.video_processor.mode = mode
     else:
         viewport.markdown("""
         <div style="background:#0D1220;border:1px dashed #1E3A52;border-radius:12px;padding:60px 40px;text-align:center;margin-top:20px;">
