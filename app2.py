@@ -606,7 +606,7 @@ class OmniVisionCloudProcessor:
 # ─────────────────────────────────────────────────────────────────────────────
 with col_vid:
     if not run:
-        # 1. Shows your beautiful custom HTML layout ONLY when the checkbox is empty!
+        # Shows your custom dark HTML layout when unchecked
         viewport.markdown("""
         <div style="background:#0D1220;border:1px dashed #1E3A52;border-radius:12px;padding:60px 40px;text-align:center;margin-top:20px;">
           <div style="font-size:48px;margin-bottom:16px;">📷</div>
@@ -616,9 +616,11 @@ with col_vid:
         """, unsafe_allow_html=True)
     
     else:
-        # 2. Checked! The offline screen vanishes completely. Render ONLY the streaming canvas tools.
+        # 🔄 DYNAMIC KEY RESTART ENGINE
+        # Appending '-{mode}' forces the entire component to unmount and spin back up 
+        # instantly with a clean processing state whenever a new module is selected.
         ctx = webrtc_streamer(
-            key="omnivision-cloud-core-pipeline",  # Fixed key stabilizes deployment coordinates
+            key=f"omnivision-cloud-pipeline-{mode}", 
             mode=WebRtcMode.SENDRECV,
             async_processing=True,
             rtc_configuration={
