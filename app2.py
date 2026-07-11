@@ -605,24 +605,24 @@ class OmniVisionCloudProcessor:
 # ─────────────────────────────────────────────────────────────────────────────
 with col_vid:
     if run:
-        # 1. Mount the stream with a permanently STABLE key and clean configuration dictionary
-        ctx = webrtc_streamer(
-           key="omnivision-cloud-core-pipeline",  # Fixed string stops layout jumps & connection resets
-             mode=WebRtcMode.SENDRECV,
-              async_processing=True,
-             rtc_configuration={
+        # 1. Make sure "ctx = " is explicitly written right here:
+            ctx = webrtc_streamer(
+    key="omnivision-cloud-core-pipeline", 
+    mode=WebRtcMode.SENDRECV,
+    async_processing=True,
+    rtc_configuration={
         "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
-            },  # Clean dict structure bypasses wrapper bugs
+    },
     media_stream_constraints={
-             "video": {"width": {"ideal": 640}, "height": {"ideal": 480}},
-          "audio": False
-             },
+        "video": {"width": {"ideal": 640}, "height": {"ideal": 480}},
+        "audio": False
+    },
     video_processor_factory=lambda: OmniVisionCloudProcessor(mode),
 )
 
-# 2. THE SECRET SAUCE: Hot-swap the processing mode on the fly without breaking the stream!
+# 2. Now this line down on line 624 has access to the variable and works perfectly:
     if ctx.video_processor:
-          ctx.video_processor.mode = mode
+           ctx.video_processor.mode = mode
     else:
         viewport.markdown("""
         <div style="background:#0D1220;border:1px dashed #1E3A52;border-radius:12px;padding:60px 40px;text-align:center;margin-top:20px;">
