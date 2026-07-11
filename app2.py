@@ -14,7 +14,8 @@ import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 import av  # NEW: Handles cloud video frame decoding[cite: 3]
-from streamlit_webrtc import webrtc_streamer, WebRtcMode
+from streamlit_webrtc import webrtc_streamer, WebRtcMode 
+ctx = None
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -621,8 +622,8 @@ with col_vid:
 )
 
 # 2. Now this line down on line 624 has access to the variable and works perfectly:
-    if ctx.video_processor:
-           ctx.video_processor.mode = mode
+    if ctx and ctx.video_processor:
+        ctx.video_processor.mode = mode
     else:
         viewport.markdown("""
         <div style="background:#0D1220;border:1px dashed #1E3A52;border-radius:12px;padding:60px 40px;text-align:center;margin-top:20px;">
