@@ -616,11 +616,9 @@ with col_vid:
         """, unsafe_allow_html=True)
     
     else:
-        # 🔄 DYNAMIC KEY RESTART ENGINE
-        # Appending '-{mode}' forces the entire component to unmount and spin back up 
-        # instantly with a clean processing state whenever a new module is selected.
+        # 1. LOCKED STATIC KEY: Keeps the webcam open and stable across all module switches
         ctx = webrtc_streamer(
-            key=f"omnivision-cloud-pipeline-{mode}", 
+            key="omnivision-cloud-core-pipeline", 
             mode=WebRtcMode.SENDRECV,
             async_processing=True,
             rtc_configuration={
@@ -633,8 +631,9 @@ with col_vid:
             video_processor_factory=lambda: OmniVisionCloudProcessor(mode),
         )
 
-        # 3. Keep this INSIDE the active block! 
-        # Every time a module is changed, this hot-swaps the underlying AI track in the running stream.
+        # ⚡ THE LIVE HOT-SWAP ENGINE
+        # This line intercepts the running video thread and forces your processor 
+        # to change models instantly without needing to click start or reset the camera!
         if ctx and ctx.video_processor:
             ctx.video_processor.mode = mode
 
