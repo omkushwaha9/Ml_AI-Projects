@@ -15,6 +15,17 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 import av  # NEW: Handles cloud video frame decoding[cite: 3]
 from streamlit_webrtc import webrtc_streamer, WebRtcMode, RTCConfiguration # NEW: Cloud camera stream engine[cite: 3]
+# Find your existing webrtc_streamer call and add the rtc_configuration block:
+webrtc_streamer(
+    key="omnivision-pro-stream",  # Leave your original key here
+    rtc_configuration={
+        "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
+    },
+    # ─── KEEP ALL YOUR OTHER EXISTING ARGUMENTS BELOW THIS LINE ───
+    # e.g., video_frame_callback=video_frame_callback,
+    # e.g., async_processing=True,
+    # etc.
+)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # SSL bypass for verified Google Storage downloads
