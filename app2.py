@@ -605,17 +605,14 @@ class OmniVisionCloudProcessor:
 # CONTROL INTERFACE & COMPACT VIEWPORT MAPPING[cite: 3]
 # ─────────────────────────────────────────────────────────────────────────────
 with col_vid:
-    # 1. Define your single preferred checkbox right here
-    run = st.checkbox("▶️ Activate Camera Pipeline", value=False)
-
     if not run:
-        # 2. Shows ONLY when unchecked.
+        # 1. Shows ONLY when unchecked. The moment you check it, this entire block disappears!
         st.error("📷 Camera Pipeline Offline\n\nEnable the checkbox above to activate cloud processing loop.")
     
     else:
-        # 3. Checked! The error message above vanishes instantly.
+        # 2. Checked! Show ONLY the streaming canvas, select device dropdown, and start tools
         ctx = webrtc_streamer(
-            key="omnivision-cloud-core-pipeline", 
+            key="omnivision-cloud-core-pipeline",  # Fixed key keeps the player layout stable
             mode=WebRtcMode.SENDRECV,
             async_processing=True,
             rtc_configuration={
@@ -629,6 +626,8 @@ with col_vid:
         )
 
         # ⚡ AUTOMATIC MODULE HOT-SWAPPING
+        # When you change the module, this instantly updates the running stream 
+        # without making you click stop/start again!
     if ctx and ctx.video_processor:
             ctx.video_processor.mode = mode
     else:
