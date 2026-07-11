@@ -626,8 +626,38 @@ class OmniVisionCloudProcessor:
 # CONTROL INTERFACE & COMPACT VIEWPORT MAPPING[cite: 3]
 # ─────────────────────────────────────────────────────────────────────────────
 with col_vid:
-    if not run:
-        # Your custom dark HTML layout stays here
+    # 1. Initialize State Gatekeepers
+    if "current_mode" not in st.session_state:
+        st.session_state.current_mode = mode
+    if "cam_id" not in st.session_state:
+        st.session_state.cam_id = 0
+
+    # 2. DETECT MODULE SWITCH: Trigger a safe hardware reset sequence
+    if mode != st.session_state.current_mode:
+        st.session_state.current_mode = mode
+        st.session_state.cam_id += 1        # Increments key to force a clean component rebuild
+        st.session_state.is_switching = True # Activates the cooling-off frame
+        st.rerun()
+
+    # 3. THE COOLING-OFF FRAME: Gives your Mac OS time to release the webcam lock
+    if st.session_state.get("is_switching", False):
+        st.session_state.is_switching = False
+        st.markdown("""
+        <div style="background:#0D1220;border:1px solid #1E3A52;border-radius:12px;padding:40px;text-align:center;margin-top:20px;">
+          <div style="margin:0 auto 16px auto;width:40px;height:40px;border:4px solid #1E3A52;border-top-color:#38BDF8;border-radius:50%;animation:spin 1s linear infinite;"></div>
+          <div style="color:#F1F5F9;font-size:16px;font-weight:600;">Reconfiguring AI Pipeline Hardware...</div>
+          <div style="color:#64748B;font-size:13px;margin-top:4px;">Swapping tracking vectors safely...</div>
+        </div>
+        <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+        """, unsafe_allow_html=True)
+        
+        import time
+        time.sleep(0.6)  # The magic sweet spot to clear browser hardware contention
+        st.rerun()
+
+    # 4. MAIN RENDERING STREAM
+    elif not run:
+        # Your custom dark HTML offline view
         viewport.markdown("""
         <div style="background:#0D1220;border:1px dashed #1E3A52;border-radius:12px;padding:60px 40px;text-align:center;margin-top:20px;">
           <div style="font-size:48px;margin-bottom:16px;">📷</div>
@@ -637,12 +667,9 @@ with col_vid:
         """, unsafe_allow_html=True)
     
     else:
-        # 1. Update the registry with the active UI selection before the engine boots
-        CloudPipelineRegistry.active_mode = mode
-
-        # 2. Launch the WebRTC stream with multiple redundant global network bridges
+        # Render the fresh camera component with a clean versioned tracking key
         ctx = webrtc_streamer(
-            key="omnivision-cloud-core-pipeline", 
+            key=f"omnivision-cloud-pipeline-v{st.session_state.cam_id}", 
             mode=WebRtcMode.SENDRECV,
             async_processing=True,
             rtc_configuration={
@@ -656,7 +683,7 @@ with col_vid:
                 "video": {"width": {"ideal": 640}, "height": {"ideal": 480}},
                 "audio": False
             },
-            video_processor_factory=stable_processor_factory, # Uses our static registry function
+            video_processor_factory=lambda: OmniVisionCloudProcessor(mode),
         )
 
         # 3. Safely update the live background tracking thread variable
