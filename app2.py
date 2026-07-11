@@ -16,6 +16,13 @@ from mediapipe.tasks.python import vision
 import av  # NEW: Handles cloud video frame decoding[cite: 3]
 from streamlit_webrtc import webrtc_streamer, WebRtcMode 
 ctx = None
+# 1. Create a stable memory registry to hold the active UI selection
+class CloudPipelineRegistry:
+    active_mode = "hand"
+
+# 2. This function address stays perfectly static across all page reruns
+def stable_processor_factory():
+    return OmniVisionCloudProcessor(mode=CloudPipelineRegistry.active_mode)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -620,6 +627,7 @@ class OmniVisionCloudProcessor:
 # ─────────────────────────────────────────────────────────────────────────────
 with col_vid:
     if not run:
+        # Your custom dark HTML layout stays here
         viewport.markdown("""
         <div style="background:#0D1220;border:1px dashed #1E3A52;border-radius:12px;padding:60px 40px;text-align:center;margin-top:20px;">
           <div style="font-size:48px;margin-bottom:16px;">📷</div>
@@ -629,22 +637,29 @@ with col_vid:
         """, unsafe_allow_html=True)
     
     else:
-        # Streamlit calls OmniVisionCloudProcessor() safely with no arguments now!
+        # 1. Update the registry with the active UI selection before the engine boots
+        CloudPipelineRegistry.active_mode = mode
+
+        # 2. Launch the WebRTC stream with multiple redundant global network bridges
         ctx = webrtc_streamer(
             key="omnivision-cloud-core-pipeline", 
             mode=WebRtcMode.SENDRECV,
             async_processing=True,
             rtc_configuration={
-                "iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]
+                "iceServers": [
+                    {"urls": ["stun:stun.l.google.com:19302"]},
+                    {"urls": ["stun:stun1.l.google.com:19302"]},
+                    {"urls": ["stun:stun.services.mozilla.com"]}
+                ]
             },
             media_stream_constraints={
                 "video": {"width": {"ideal": 640}, "height": {"ideal": 480}},
                 "audio": False
             },
-            video_processor_factory=OmniVisionCloudProcessor,
+            video_processor_factory=stable_processor_factory, # Uses our static registry function
         )
 
-        # This instantly overrides the default "hand" mode with your actual active selection
+        # 3. Safely update the live background tracking thread variable
         if ctx and ctx.video_processor:
             ctx.video_processor.mode = mode
 
