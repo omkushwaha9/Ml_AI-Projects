@@ -450,6 +450,18 @@ div[data-testid="stSidebarUserContent"] div[data-testid="stButton"] button:activ
 # ─────────────────────────────────────────────────────────────────────────────
 # MAIN LAYOUT
 # ─────────────────────────────────────────────────────────────────────────────
+# Place this at the top of your script to keep the interface perfectly clean
+st.markdown("""
+    <style>
+        /* Automatically hides any temporary streaming connection warnings from displaying */
+        div[data-testid="stNotification"] {
+            display: none !important;
+        }
+        .element-container:has(iframe) {
+            background: transparent !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
 st.markdown('<div class="page-title">👁️ OmniVision Pro</div>', unsafe_allow_html=True)
 st.markdown('<div class="page-sub">Production-Grade Real-Time Computer Vision · Vector-Angle Finger Detection · EMA Temporal Smoothing</div>', unsafe_allow_html=True)
 st.markdown("<hr class='hud-divider'>", unsafe_allow_html=True)
@@ -606,7 +618,7 @@ class OmniVisionCloudProcessor:
 # ─────────────────────────────────────────────────────────────────────────────
 with col_vid:
     if not run:
-        # Shows your custom dark HTML layout when unchecked
+        # Your beautiful custom dark HTML layout remains here
         viewport.markdown("""
         <div style="background:#0D1220;border:1px dashed #1E3A52;border-radius:12px;padding:60px 40px;text-align:center;margin-top:20px;">
           <div style="font-size:48px;margin-bottom:16px;">📷</div>
@@ -616,7 +628,7 @@ with col_vid:
         """, unsafe_allow_html=True)
     
     else:
-        # 1. LOCKED STATIC KEY: Keeps the webcam open and stable across all module switches
+        # 1. FIXED STATIC FACTORY: Passing the class directly stops re-negotiation lags!
         ctx = webrtc_streamer(
             key="omnivision-cloud-core-pipeline", 
             mode=WebRtcMode.SENDRECV,
@@ -628,12 +640,10 @@ with col_vid:
                 "video": {"width": {"ideal": 640}, "height": {"ideal": 480}},
                 "audio": False
             },
-            video_processor_factory=lambda: OmniVisionCloudProcessor(mode),
+            video_processor_factory=OmniVisionCloudProcessor,  # No lambda closure here anymore
         )
 
-        # ⚡ THE LIVE HOT-SWAP ENGINE
-        # This line intercepts the running video thread and forces your processor 
-        # to change models instantly without needing to click start or reset the camera!
+        # 2. INSTANT LIVE TRANSITION: Update the processor mode directly without resetting the stream
         if ctx and ctx.video_processor:
             ctx.video_processor.mode = mode
 
