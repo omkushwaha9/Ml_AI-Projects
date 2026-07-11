@@ -462,6 +462,7 @@ st.markdown("""
         }
     </style>
 """, unsafe_allow_html=True)
+
 st.markdown('<div class="page-title">👁️ OmniVision Pro</div>', unsafe_allow_html=True)
 st.markdown('<div class="page-sub">Production-Grade Real-Time Computer Vision · Vector-Angle Finger Detection · EMA Temporal Smoothing</div>', unsafe_allow_html=True)
 st.markdown("<hr class='hud-divider'>", unsafe_allow_html=True)
@@ -485,8 +486,9 @@ hand_engine, face_engine, obj_engine = load_models()
 # THREAD-SAFE CLOUD VIDEO FILTER ENGINE (FIXED CANVAS MEMORY)
 # ─────────────────────────────────────────────────────────────────────────────
 class OmniVisionCloudProcessor:
-    def __init__(self, current_mode):
-        self.module_target = current_mode
+    # Change this line to include a default value like ="hand"
+    def __init__(self, mode="hand"): 
+        self.mode = mode
         self.t_last = time.time()
         self.paint_memory = [] # ✅ FIXED: Safe local memory block for canvas trails
 
@@ -618,7 +620,6 @@ class OmniVisionCloudProcessor:
 # ─────────────────────────────────────────────────────────────────────────────
 with col_vid:
     if not run:
-        # Your beautiful custom dark HTML layout remains here
         viewport.markdown("""
         <div style="background:#0D1220;border:1px dashed #1E3A52;border-radius:12px;padding:60px 40px;text-align:center;margin-top:20px;">
           <div style="font-size:48px;margin-bottom:16px;">📷</div>
@@ -628,7 +629,7 @@ with col_vid:
         """, unsafe_allow_html=True)
     
     else:
-        # 1. FIXED STATIC FACTORY: Passing the class directly stops re-negotiation lags!
+        # Streamlit calls OmniVisionCloudProcessor() safely with no arguments now!
         ctx = webrtc_streamer(
             key="omnivision-cloud-core-pipeline", 
             mode=WebRtcMode.SENDRECV,
@@ -640,10 +641,10 @@ with col_vid:
                 "video": {"width": {"ideal": 640}, "height": {"ideal": 480}},
                 "audio": False
             },
-            video_processor_factory=OmniVisionCloudProcessor,  # No lambda closure here anymore
+            video_processor_factory=OmniVisionCloudProcessor,
         )
 
-        # 2. INSTANT LIVE TRANSITION: Update the processor mode directly without resetting the stream
+        # This instantly overrides the default "hand" mode with your actual active selection
         if ctx and ctx.video_processor:
             ctx.video_processor.mode = mode
 
