@@ -606,13 +606,19 @@ class OmniVisionCloudProcessor:
 # ─────────────────────────────────────────────────────────────────────────────
 with col_vid:
     if not run:
-        # 1. Shows ONLY when unchecked. The moment you check it, this entire block disappears!
-        st.error("📷 Camera Pipeline Offline\n\nEnable the checkbox above to activate cloud processing loop.")
+        # 1. Shows your beautiful custom HTML layout ONLY when the checkbox is empty!
+        viewport.markdown("""
+        <div style="background:#0D1220;border:1px dashed #1E3A52;border-radius:12px;padding:60px 40px;text-align:center;margin-top:20px;">
+          <div style="font-size:48px;margin-bottom:16px;">📷</div>
+          <div style="color:#F1F5F9;font-size:18px;font-weight:700;">Camera Pipeline Offline</div>
+          <div style="color:#64748B;font-size:14px;margin-top:8px;">Enable the checkbox above to activate cloud processing loop.</div>
+        </div>
+        """, unsafe_allow_html=True)
     
     else:
-        # 2. Checked! Show ONLY the streaming canvas, select device dropdown, and start tools
+        # 2. Checked! The offline screen vanishes completely. Render ONLY the streaming canvas tools.
         ctx = webrtc_streamer(
-            key="omnivision-cloud-core-pipeline",  # Fixed key keeps the player layout stable
+            key="omnivision-cloud-core-pipeline",  # Fixed key stabilizes deployment coordinates
             mode=WebRtcMode.SENDRECV,
             async_processing=True,
             rtc_configuration={
@@ -625,19 +631,10 @@ with col_vid:
             video_processor_factory=lambda: OmniVisionCloudProcessor(mode),
         )
 
-        # ⚡ AUTOMATIC MODULE HOT-SWAPPING
-        # When you change the module, this instantly updates the running stream 
-        # without making you click stop/start again!
-    if ctx and ctx.video_processor:
+        # 3. Keep this INSIDE the active block! 
+        # Every time a module is changed, this hot-swaps the underlying AI track in the running stream.
+        if ctx and ctx.video_processor:
             ctx.video_processor.mode = mode
-    else:
-        viewport.markdown("""
-        <div style="background:#0D1220;border:1px dashed #1E3A52;border-radius:12px;padding:60px 40px;text-align:center;margin-top:20px;">
-          <div style="font-size:48px;margin-bottom:16px;">📷</div>
-          <div style="color:#F1F5F9;font-size:18px;font-weight:700;">Camera Pipeline Offline</div>
-          <div style="color:#64748B;font-size:14px;margin-top:8px;">Enable the checkbox above to activate cloud processing loop.</div>
-        </div>
-        """, unsafe_allow_html=True)
 
 # Clean placeholders since layouts are cleanly printed onto the top of the stream directly[cite: 3]
 # ─────────────────────────────────────────────────────────────────────────────
