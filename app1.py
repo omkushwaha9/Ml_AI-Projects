@@ -422,7 +422,7 @@ div[data-testid="stSidebarUserContent"] div[data-testid="stButton"] button:hover
 # MAIN LAYOUT
 # ─────────────────────────────────────────────────────────────────────────────
 st.markdown('<div class="page-title">👁️ OmniVision Pro</div>', unsafe_allow_html=True)
-st.markdown('<div class="page-sub">Production-Grade Real-Time Vision · v3.0 Bug-Fixed · EMA Smoothed · Multi-Frame Voted</div>', unsafe_allow_html=True)
+st.markdown('<div class="page-sub">Real-Time Vision · v3.0 Powered by Python · Real-time ML Models</div>', unsafe_allow_html=True)
 st.markdown("<hr class='hud-divider'>", unsafe_allow_html=True)
 
 col_vid, col_hud = st.columns([3, 2])
